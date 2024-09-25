@@ -18,12 +18,14 @@ const BuildTrip = ({}) => {
     const [markerPosition, setMarkerPosition] = useState({ lat: 53.54, lng: 10 }); 
 
         //onClick handler for marker to open window and set the location of the open window to the marker position
-    const handleMarkerClick = () => {
+    const handleMarkerClick = (e) => {
         setMarkerPosition({ lat: 53.54, lng: 10 }); // Set position on click
         setOpen(true); // Open InfoWindow
     };
+    /* For the Accomodation search bar */
 
-    /* For the Google Places API search bar */
+
+    /* For the Activities search bar */
     const [placeSearchText, setPlaceSearchText] = useState("");
     const [placeSearchResults, setPlaceSearchResults] = useState(null);
 
@@ -36,37 +38,48 @@ const BuildTrip = ({}) => {
 
     console.log(placeSearchResults); //testing that results are returned correctly
 
-    const handleSubmit = (e) => {
+    const handleSearchSubmit = (e) => {
         e.preventDefault();
         // We'll call the fetch function here
         searchPlaces(placeSearchText);
         setPlaceSearchText("");
     };
 
-    /* For handling the search results  */
+    /* For storing accomodation in a day */
+    const [accomodation, setAccomodation] = useState();
+
+    console.log("Accomodation", accomodation);
+
+    const handleAddAccomodation = (place) => {
+        setAccomodation({
+            name: place.displayName.text,
+            address: place.formattedAddress,
+            location: place.location
+        });
+    }
+
+    /* For storing activities in a day */
+    const [activities, setActivities] = useState([]);
+
+    console.log("Activities:", activities);
+
+    const handleAddActivity = (place) => {
+        setActivities([...activities, {
+            name: place.displayName.text,
+            address: place.formattedAddress,
+            location: place.location
+        }]);
+    }
 
 
     return (
         <main>
             <h1>Build Trip</h1>
-
-            <section>
-                <form onSubmit={handleSubmit}>
-                    <label htmlFor="placeSearchText">Where do you want to go?: </label>
-                    <input
-                    id="placeSearchText"
-                    type="text"
-                    value={placeSearchText}
-                    onChange={(e) => setPlaceSearchText(e.target.value)}
-                    />
-                    <button type="submit">Search</button>
-                </form>
-            </section>
             
             <APIProvider apiKey={API_KEY}>
                 <div style={{ height: "100vh", width: "100vh" }}>
                     <Map 
-                        defaultZoom={12} 
+                        defaultZoom={11} 
                         defaultCenter={{lat: 1.290270, lng: 103.851959}}
                         mapId={MAP_ID}
                     >
@@ -75,6 +88,27 @@ const BuildTrip = ({}) => {
                                 <Pin />
                             </AdvancedMarker> 
                         ))}
+
+                        {activities && activities.map((activity) => (
+                            <AdvancedMarker key={activity.address} position={{lat: activity.location.latitude, lng: activity.location.longitude}} onClick={handleMarkerClick}>
+                                <Pin 
+                                    background={'green'}
+                                    borderColor={'green'}
+                                    glyphColor={'lime'}
+                                />
+                            </AdvancedMarker> 
+                        ))}
+
+                        {accomodation && 
+                            <AdvancedMarker position={{lat: accomodation.location.latitude, lng: accomodation.location.longitude}} onClick={handleMarkerClick}>
+                                <Pin 
+                                    background={'blue'}
+                                    borderColor={'blue'}
+                                    glyphColor={'lightblue'}
+                                    title="accomodation"
+                                />
+                            </AdvancedMarker> 
+                        }
                        
                         {open && 
                             <InfoWindow position={markerPosition} onCloseClick={() => setOpen(false)}>
@@ -84,11 +118,34 @@ const BuildTrip = ({}) => {
                     </Map>
                 </div>
             </APIProvider>
+
+            <br></br>
+
+            <section>
+                <form onSubmit={handleSearchSubmit}>
+                    <label htmlFor="placeSearchText">Search for Activities and Accomodation: </label>
+                    <input
+                    id="placeSearchText"
+                    type="text"
+                    value={placeSearchText}
+                    onChange={(e) => setPlaceSearchText(e.target.value)}
+                    />
+                    <button type="submit">Search</button>
+                </form>
+            </section>
+
+            <br></br>
+
             <ol>
-                {placeSearchResults && placeSearchResults.map((place) => (
-                    <li key={place.formattedAddress}>
+                {placeSearchResults && placeSearchResults.map((place, index) => (
+                    <li key={index}>
                         <p><strong>{place.displayName.text}</strong></p>
                         <p><em>{place.formattedAddress}</em></p>
+                        <p>{place?.rating ? place.rating : "No ratings"} &#11088;</p>
+                        <p>{place.editorialSummary?.text}</p>
+                        <p><a>{place?.websiteUri}</a></p>
+                        {place.types.includes("lodging")  ? <button onClick={() => handleAddAccomodation(place)}>Choose Accomodation</button> : <button onClick={() => handleAddActivity(place)}>+ Add Activity</button>}
+                        
                     </li>
                 ))}
             </ol>

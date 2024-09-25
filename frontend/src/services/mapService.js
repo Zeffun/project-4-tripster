@@ -9,7 +9,7 @@ const searchPlaces = async (formData) => {
       headers: { 
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': API_KEY,
-        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.priceLevel,places.location',
+        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.priceLevel,places.location,places.editorialSummary,places.websiteUri,places.rating,places.types',
     },
       body: JSON.stringify(formData),
     });
