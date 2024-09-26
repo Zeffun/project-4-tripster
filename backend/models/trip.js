@@ -1,32 +1,62 @@
 const mongoose = require("mongoose");
 
-// placeSchema
-const placeSchema = new mongoose.Schema({
-  name: {
-      type: String,
-      required: true,
-  },
-  location: { 
+// // placeSchema
+// const placeSchema = new mongoose.Schema({
+//   name: {
+//       type: String,
+//       required: true,
+//   },
+//   location: { 
+//     type: String, 
+//     required: true ,
+//   },
+//   description: {
+//     type: String,
+//     required: true,
+//   },
+//   price: { type: Number },
+//   contact: { type: Number },
+//   website: { type: String },
+// });
+
+// // daySchema
+// const daySchema = new mongoose.Schema({
+//   date: {
+//       type: Date,
+//       required: true,
+//   },
+//   accomodation: placeSchema,
+//   places: [placeSchema]
+// });
+
+// activitySchema
+const activitySchema = new mongoose.Schema({
+  activityName: {
     type: String, 
-    required: true ,
-  },
-  description: {
-    type: String,
     required: true,
   },
-  price: { type: Number },
-  contact: { type: Number },
-  website: { type: String },
+  activityAddress: {
+    type: String, 
+    required: true,
+  },
+  activitySummary: {
+    type: String
+  }
 });
 
-// daySchema
-const daySchema = new mongoose.Schema({
-  date: {
-      type: Date,
-      required: true,
+// accomodationSchema
+const accomodationSchema = new mongoose.Schema({
+  accomodationName: {
+    type: String, 
+    required: true,
   },
-  accomodation: placeSchema,
-  places: [placeSchema]
+  accomodationAddress: {
+    type: String, 
+    required: true,
+  },
+  accomodationSummary: {
+    type: String
+  }
 });
 
 // tripSchema
@@ -36,11 +66,12 @@ const tripSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
-    travellerCount: {
+    days: {
       type: Number,
-      required: true,
+      required: true
     },
-    days: [daySchema]
+    activities: [activitySchema],
+    accomodation: [accomodationSchema]
   },
   { timestamps: true }
 );

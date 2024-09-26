@@ -1,5 +1,5 @@
 import { AuthedUserContext } from '../../App';
-import { useContext, useCallback, useState, useRef } from 'react';
+import { useContext, useCallback, useState, useRef, useEffect } from 'react';
 import {createRoot} from "react-dom/client";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import * as mapService from '../../services/mapService';
@@ -47,16 +47,17 @@ const BuildTrip = ({}) => {
     };
 
     /* For storing accomodation in a day */
-    const [accomodation, setAccomodation] = useState();
+    const [accomodation, setAccomodation] = useState([]);
 
     console.log("Accomodation", accomodation);
 
     const handleAddAccomodation = (place) => {
-        setAccomodation({
+        setAccomodation([...accomodation, {
             name: place.displayName.text,
             address: place.formattedAddress,
-            location: place.location
-        });
+            location: place.location,
+            summary: place?.editorialSummary?.text
+        }]);
     }
 
     /* For storing activities in a day */
@@ -68,16 +69,29 @@ const BuildTrip = ({}) => {
         setActivities([...activities, {
             name: place.displayName.text,
             address: place.formattedAddress,
-            location: place.location
+            location: place.location,
+            summary: place?.editorialSummary?.text
         }]);
     }
+
+    // const handleUpdateDayActivities = () => {
+    //     setDays((prevDays) =>
+    //         prevDays.map((day) =>
+    //           day.dayNumber == selectedDay
+    //             ? { ...day, activities: activities } // Update the value for the matching item
+    //             : day // Keep the other items unchanged
+    //         )
+    //     );
+
+    //     console.log(days);
+    // }
 
     /* For storing the to and from dates */
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     console.log(fromDate, toDate);
 
-    // Function to calculate the difference in days
+    // Function to calculate the difference in days to get the total number of days for the trip
     const calculateDifference = (start, end) => {
         if (start && end) {
         const timeDiff = end.toDate().getTime() - start.toDate().getTime();
@@ -88,6 +102,30 @@ const BuildTrip = ({}) => {
     };
 
     const tripDays = calculateDifference(fromDate, toDate);
+
+    // Storing the number of days in a trip to use
+    const [selectedDay, setSelectedDay] = useState({});
+
+    console.log("selected Day", selectedDay);
+
+    // Creating the number of days for this trip
+    let daysArray = [];
+    for(let i = 0; i < tripDays; i++) {
+        daysArray.push({
+            dayNumber: i + 1,
+            accomodation: [],
+            activities: [],
+        });
+    };
+    console.log("DaysArray", daysArray);
+
+    const [days, setDays] = useState([]);
+
+    const createDays = () => {
+        setDays(daysArray);
+    };
+
+    console.log("days", days);
 
     /* Google Maps Camera Controls */
     const INITIAL_CAMERA = {lat: 40.7, lng: -74};
@@ -120,14 +158,17 @@ const BuildTrip = ({}) => {
     }
 
     const handleTravelDestSearchSubmit = (e) => {
+        // We'll call the VC internship Melbourne
         e.preventDefault();
-        // We'll call the fetch function here
+        // We'll call the fetch function here: 
         searchTravelDest(travelDestSearchText);
         setTravelDestSearchText("");
     };
 
     return (
         <main>
+
+
             <h1>Build Trip</h1>
 
             <section>
@@ -144,7 +185,7 @@ const BuildTrip = ({}) => {
                 <p>To: </p>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker 
-                        label="Date to" 
+                        label="Date to"
                         value={toDate}
                         onChange={(newDate) => setToDate(newDate)}
                         format="DD-MM-YYYY"
@@ -153,7 +194,11 @@ const BuildTrip = ({}) => {
                 <Typography variant="h6">
                     Days: {tripDays}
                 </Typography>
+                <br></br>
+                <button onClick={createDays}>Confirm</button>
             </section>
+
+            <br></br>
 
             <section>
                 <h2>2. Where are you going?</h2>
@@ -180,11 +225,11 @@ const BuildTrip = ({}) => {
                         </li>
                     ))}
                 </ol>
-            </section>
-                           
+            </section>   
+
             <br></br>
 
-            <h2>3. Select accomodation & activities for each day</h2>
+            <h2>3. Select accomodation & activities</h2>
             <APIProvider apiKey={API_KEY}>
                 <div style={{ height: "100vh", width: "100vh" }}>
                     {cameraProps ? <Map 
@@ -209,16 +254,15 @@ const BuildTrip = ({}) => {
                             </AdvancedMarker> 
                         ))}
 
-                        {accomodation && 
+                        {accomodation && accomodation.map((accomodation, index) => (
                             <AdvancedMarker position={{lat: accomodation.location.latitude, lng: accomodation.location.longitude}} onClick={handleMarkerClick}>
                                 <Pin 
                                     background={'blue'}
                                     borderColor={'blue'}
                                     glyphColor={'lightblue'}
-                                    title="accomodation"
                                 />
                             </AdvancedMarker> 
-                        }
+                        ))}
                        
                         {open && 
                             <InfoWindow position={markerPosition} onCloseClick={() => setOpen(false)}>
@@ -246,11 +290,38 @@ const BuildTrip = ({}) => {
 
             <br></br>
 
-            <div>
+            <h3>Accommodation</h3>
+            <ul>
+            {accomodation && accomodation.map((place, index) => (
+                <li key={index}>
+                    <p><strong>{place.name}</strong></p>
+                    <p><em>{place.address}</em></p>
+                    <p>{place.summary}</p>
+                </li> 
+            ))}
+            </ul>
+
+            <h3>Activities</h3>
+            <ul>
+            {activities && activities.map((place, index) => (
+                <li key={index}>
+                    <p><strong>{place.name}</strong></p>
+                    <p><em>{place.address}</em></p>
+                    <p>{place.summary}</p>
+                </li> 
+            ))}
+            </ul>
+
+            {/* <div>
                 {[...Array(tripDays)].map((_, index) => (
-                    <p key={index}>Details for Trip Day {index + 1}</p>
+                    <div key={index}>
+                        <h3 key={index}>Details for Trip Day {index + 1}</h3>
+                        <p>Accomodation: </p>
+                        <p>Activities: </p>
+                        <button onClick={() => setSelectedDay(index + 1)}>Select</button>
+                    </div>
                 ))}
-            </div>
+            </div> */}
 
             <br></br>
 
@@ -262,11 +333,14 @@ const BuildTrip = ({}) => {
                         <p>{place?.rating ? place.rating : "No ratings"} &#11088;</p>
                         <p>{place.editorialSummary?.text}</p>
                         <p><a>{place?.websiteUri}</a></p>
-                        {place.types.includes("lodging")  ? <button onClick={() => handleAddAccomodation(place)}>Choose Accomodation</button> : <button onClick={() => handleAddActivity(place)}>+ Add Activity</button>}
+                        {place.types.includes("lodging")  ? <button onClick={() => handleAddAccomodation(place)}>+ Add Accomodation</button> : <button onClick={() => handleAddActivity(place)}>+ Add Activity</button>}
                         
                     </li>
                 ))}
             </ol>
+
+            <button>Save Trip</button>
+
         </main>
     );
 };
