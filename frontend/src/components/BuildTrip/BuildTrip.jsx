@@ -2,8 +2,11 @@ import { AuthedUserContext } from '../../App';
 import { useContext, useCallback, useState, useRef } from 'react';
 import {createRoot} from "react-dom/client";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
-import { GoogleMap, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api';
 import * as mapService from '../../services/mapService';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { Typography } from '@mui/material';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID;
@@ -22,16 +25,14 @@ const BuildTrip = ({}) => {
         setMarkerPosition({ lat: 53.54, lng: 10 }); // Set position on click
         setOpen(true); // Open InfoWindow
     };
-    /* For the Accomodation search bar */
 
-
-    /* For the Activities search bar */
+    /* For the Activities & Accomodation search bar */
     const [placeSearchText, setPlaceSearchText] = useState("");
     const [placeSearchResults, setPlaceSearchResults] = useState(null);
 
     //fetch function for fetching the search results from the Google Maps Places API
     const searchPlaces = async (searchText) => {
-        const placesData = await mapService.searchPlaces({ textQuery: searchText});
+        const placesData = await mapService.searchPlaces({ textQuery: `${searchText} in ${travelDest?.displayName.text} ${accomodation ? `near ${accomodation.name}`: ""}`});
         setPlaceSearchResults(placesData.places);
         
     };
@@ -71,26 +72,135 @@ const BuildTrip = ({}) => {
         }]);
     }
 
+    /* For storing the to and from dates */
+    const [fromDate, setFromDate] = useState(null);
+    const [toDate, setToDate] = useState(null);
+    console.log(fromDate, toDate);
+
+    // Function to calculate the difference in days
+    const calculateDifference = (start, end) => {
+        if (start && end) {
+        const timeDiff = end.toDate().getTime() - start.toDate().getTime();
+        const dayDiff = timeDiff / (1000 * 3600 * 24); // Convert milliseconds to days
+        return Math.ceil(dayDiff); // You can use Math.floor if you don't want to round up
+        }
+        return 0;
+    };
+
+    const tripDays = calculateDifference(fromDate, toDate);
+
+    /* Google Maps Camera Controls */
+    const INITIAL_CAMERA = {lat: 40.7, lng: -74};
+      
+    const [cameraProps, setCameraProps] = useState(null);
+
+    console.log("cameraProps", cameraProps);
+
+    const handleCameraChange = useCallback((ev) => {
+        setCameraProps(ev.detail);
+    }, []);
+
+    /* Select country to travel to */
+    const [travelDest, setTravelDest] = useState(null);
+    const [travelDestSearchText, setTravelDestSearchText] = useState("");
+    const [travelDestSearchResults, settravelDestSearchResults] = useState(null);
+
+    //fetch function for fetching the search results from the Google Maps Places API
+    const searchTravelDest = async (searchText) => {
+        const travelDestData = await mapService.searchPlaces({ textQuery: searchText});
+        settravelDestSearchResults(travelDestData.places);        
+    };
+
+    console.log("travel dest search results", travelDestSearchResults); //testing that results are returned correctly
+    console.log("travelling to", travelDest);
+
+    const handleAddTravelDest = (travelDest) => {
+        setTravelDest(travelDest);
+        setCameraProps({lat: travelDest.location.latitude, lng: travelDest.location.longitude});
+    }
+
+    const handleTravelDestSearchSubmit = (e) => {
+        e.preventDefault();
+        // We'll call the fetch function here
+        searchTravelDest(travelDestSearchText);
+        setTravelDestSearchText("");
+    };
 
     return (
         <main>
             <h1>Build Trip</h1>
-            
+
+            <section>
+                <h2>1. How long will you be going for?</h2>
+                <p>From: </p>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker 
+                        label="Date from" 
+                        value={fromDate}
+                        onChange={(newDate) => setFromDate(newDate)}
+                        format="DD-MM-YYYY"
+                    />
+                </LocalizationProvider> 
+                <p>To: </p>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker 
+                        label="Date to" 
+                        value={toDate}
+                        onChange={(newDate) => setToDate(newDate)}
+                        format="DD-MM-YYYY"
+                    />
+                </LocalizationProvider> 
+                <Typography variant="h6">
+                    Days: {tripDays}
+                </Typography>
+            </section>
+
+            <section>
+                <h2>2. Where are you going?</h2>
+                <form onSubmit={handleTravelDestSearchSubmit}>
+                    <label htmlFor="travelDestSearchText">Search for travel destinations: </label>
+                    <input
+                    id="travelDestSearchText"
+                    type="text"
+                    value={travelDestSearchText}
+                    onChange={(e) => setTravelDestSearchText(e.target.value)}
+                    />
+                    <button type="submit">Search</button>
+                </form>
+                <ol>
+                    {travelDestSearchResults && travelDestSearchResults.map((travelDest, index) => (
+                        <li key={index}>
+                            <p><strong>{travelDest.displayName.text}</strong></p>
+                            <p><em>{travelDest.formattedAddress}</em></p>
+                            <p>{travelDest?.rating ? place.rating : "No ratings"} &#11088;</p>
+                            <p>{travelDest.editorialSummary?.text}</p>
+                            <p><a>{travelDest?.websiteUri}</a></p>
+                            <button onClick={() => handleAddTravelDest(travelDest)}>Travel here</button>
+                            
+                        </li>
+                    ))}
+                </ol>
+            </section>
+                           
+            <br></br>
+
+            <h2>3. Select accomodation & activities for each day</h2>
             <APIProvider apiKey={API_KEY}>
                 <div style={{ height: "100vh", width: "100vh" }}>
-                    <Map 
+                    {cameraProps ? <Map 
                         defaultZoom={11} 
-                        defaultCenter={{lat: 1.290270, lng: 103.851959}}
+                        defaultCenter={cameraProps}
                         mapId={MAP_ID}
+                        onCameraChanged={handleCameraChange}
                     >
-                        {placeSearchResults && placeSearchResults.map((place) => (
-                            <AdvancedMarker key={place.formattedAddress} position={{lat: place.location.latitude, lng: place.location.longitude}} onClick={handleMarkerClick}>
+                        {placeSearchResults && placeSearchResults.map((place, index) => (
+                            <AdvancedMarker key={index} position={{lat: place.location.latitude, lng: place.location.longitude}} onClick={handleMarkerClick}>
                                 <Pin />
                             </AdvancedMarker> 
                         ))}
 
-                        {activities && activities.map((activity) => (
-                            <AdvancedMarker key={activity.address} position={{lat: activity.location.latitude, lng: activity.location.longitude}} onClick={handleMarkerClick}>
+                        {activities && activities.map((activity, index) => (
+                            <AdvancedMarker key={index} position={{lat: activity.location.latitude, lng: activity.location.longitude}} onClick={handleMarkerClick}>
                                 <Pin 
                                     background={'green'}
                                     borderColor={'green'}
@@ -115,7 +225,7 @@ const BuildTrip = ({}) => {
                                 <p>Hamburg</p>
                             </InfoWindow>
                         }
-                    </Map>
+                    </Map> : <p>(Please select a travel destination)</p>}
                 </div>
             </APIProvider>
 
@@ -133,6 +243,14 @@ const BuildTrip = ({}) => {
                     <button type="submit">Search</button>
                 </form>
             </section>
+
+            <br></br>
+
+            <div>
+                {[...Array(tripDays)].map((_, index) => (
+                    <p key={index}>Details for Trip Day {index + 1}</p>
+                ))}
+            </div>
 
             <br></br>
 
