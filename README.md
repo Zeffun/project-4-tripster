@@ -57,7 +57,7 @@ MUI date pickers are used to select the start and end dates of the trip, which i
 ### Setup Instructions:
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/tripster.git
+   git clone https://github.com/your-repo/project-4-tripster.git
    ```
 2. Install dependencies:
    ```bash
