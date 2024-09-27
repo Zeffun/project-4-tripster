@@ -190,8 +190,6 @@ const BuildTrip = ({}) => {
     const [tripName, setTripName] = useState("");
     console.log(tripName);
 
-    
-
     return (
         <main>
             <h1>Build Trip</h1>

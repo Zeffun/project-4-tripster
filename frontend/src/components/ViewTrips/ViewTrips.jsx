@@ -17,6 +17,11 @@ const ViewTrip = () => {
         fetchAllTrips();
       }, []);
 
+    const handleDeleteTrip = async (tripId) => {
+        const deletedTrip = await tripService.deleteTrip(tripId);
+        setUserTrips(userTrips.filter((trip) => trip._id !== deletedTrip._id));
+    }
+
 
     return (
         <>
@@ -49,7 +54,7 @@ const ViewTrip = () => {
                         ))}
                     </ul>
                     <button>Edit</button>
-                    <button>Delete</button>
+                    <button onClick={() => handleDeleteTrip(trip._id)}>Delete</button>
                 </li> 
             ))}
             </ul>               

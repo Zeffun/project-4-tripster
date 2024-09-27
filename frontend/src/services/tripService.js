@@ -27,7 +27,23 @@ const viewTrips = async () => {
     }
   };
 
+
+  const deleteTrip = async (tripId) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/trips/${tripId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      return res.json();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 export {
     createTrip,
-    viewTrips
+    viewTrips,
+    deleteTrip
 }
