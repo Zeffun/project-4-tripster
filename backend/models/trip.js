@@ -31,30 +31,30 @@ const mongoose = require("mongoose");
 
 // activitySchema
 const activitySchema = new mongoose.Schema({
-  activityName: {
+  name: {
     type: String, 
     required: true,
   },
-  activityAddress: {
+  address: {
     type: String, 
     required: true,
   },
-  activitySummary: {
+  summary: {
     type: String
   }
 });
 
 // accomodationSchema
 const accomodationSchema = new mongoose.Schema({
-  accomodationName: {
+  name: {
     type: String, 
     required: true,
   },
-  accomodationAddress: {
+  address: {
     type: String, 
     required: true,
   },
-  accomodationSummary: {
+  summary: {
     type: String
   }
 });

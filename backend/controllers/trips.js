@@ -24,30 +24,6 @@ router.post("/", async (req, res) => {
     }
 });
 
-// Add days to a trip
-router.put("/:tripId", async (req, res) => {
-    try {
-        //Find the trip:
-        const trip = await Trip.findById(req.params.tripId);
-        //Check permissions:
-        if (!trip.user.equals(req.user._id)) {
-            return res.status(403).send("You're not allowed to do that!");
-        };
-        // Update trip:
-        const updatedTrip = await Trip.findByIdAndUpdate(
-            req.params.tripId,
-            req.body,
-            { new: true }
-        );
-        // Append req.user to the user property:
-        updatedTrip._doc.user = req.user;
-        // Issue JSON response:
-        res.status(200).json(updatedTrip);
-    } catch (error) {
-        res.status(500).json(error);
-    }
-});
-
 // Get all trips created and saved by current user
 router.get("/", async (req, res) => {
   try {
@@ -55,6 +31,30 @@ router.get("/", async (req, res) => {
     res.status(200).json(trips);
   } catch (error) {
     res.status(500).json(error);
+  }
+});
+
+// Add days to a trip
+router.put("/:tripId", async (req, res) => {
+  try {
+      //Find the trip:
+      const trip = await Trip.findById(req.params.tripId);
+      //Check permissions:
+      if (!trip.user.equals(req.user._id)) {
+          return res.status(403).send("You're not allowed to do that!");
+      };
+      // Update trip:
+      const updatedTrip = await Trip.findByIdAndUpdate(
+          req.params.tripId,
+          req.body,
+          { new: true }
+      );
+      // Append req.user to the user property:
+      updatedTrip._doc.user = req.user;
+      // Issue JSON response:
+      res.status(200).json(updatedTrip);
+  } catch (error) {
+      res.status(500).json(error);
   }
 });
 

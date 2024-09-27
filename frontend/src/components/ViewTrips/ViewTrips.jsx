@@ -1,53 +1,56 @@
 import { GoogleMap, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api';
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+import * as tripService from '../../services/tripService';
 
 
 const ViewTrip = () => {
-    const inputref = useRef(null);
+    const [userTrips, setUserTrips] = useState([]);
 
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: API_KEY,
-        libraries: ["places"]
-    });
+    useEffect(() => {
+        // Place side effects like data fetching here!
+        const fetchAllTrips = async () => {
+            const tripsData = await tripService.viewTrips();
+            console.log("trips:", tripsData);
+            setUserTrips(tripsData);
+        }
+        fetchAllTrips();
+      }, []);
 
-    console.log(isLoaded);
-
-    const handleOnPlacesChanged = () => {
-        let address = inputref.current.getPlaces();
-        console.log("address", address);
-    }
 
     return (
         <>
-            <h1>View your trips here!</h1>
-            <div style={{marginTop: "10%", textAlign: "center"}}>
-                {isLoaded && 
-                <StandaloneSearchBox
-                    onLoad={(ref) => inputref.current = ref}
-                    onPlacesChanged={handleOnPlacesChanged}
-                >
-                    <input 
-                        type='text'
-                        placeholder='What do you want to do?'
-                        style={{
-                            boxSizing: 'border-box',
-                            border: '1px solid transparent',
-                            width: '50%',
-                            height: '50px',
-                            padding: '0 12px',
-                            borderRadius: '3px',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0..3)',
-                            fontSize: '14px',
-                            outline: 'none',
-                            textOverflow: 'ellipses',
-                            marginTop: '30px',
-                        }}
-                    />
-                </StandaloneSearchBox>
-                }
-            </div>
+            <h1>View Trips</h1> 
+            <ul>
+            {userTrips && userTrips.map((trip, index) => (
+                <li key={index}>
+                    <p><strong>{trip.tripName}</strong></p>
+                    <p>Number of Days: {trip.days}</p>
+                    <p>Activities</p>
+                    <ul>
+                    {trip.activities && trip.activities.map((place, index) => (
+                        <li key={index}>
+                            <p><strong>{place.name}</strong></p>
+                            <p><em>{place.address}</em></p>
+                            <p>{place.summary}</p>
+                        </li> 
+                    ))}
+                    </ul>
+                    <p>Accomodation</p>
+                    <ul>
+                        {trip.accomodation && trip.accomodation.map((place, index) => (
+                            <li key={index}>
+                                <p><strong>{place.name}</strong></p>
+                                <p><em>{place.address}</em></p>
+                                <p>{place.summary}</p>
+                            </li> 
+                        ))}
+                    </ul>
+                    <button>Edit</button>
+                    <button>Delete</button>
+                </li> 
+            ))}
+            </ul>               
         </>
     );
 }

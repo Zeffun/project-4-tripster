@@ -3,6 +3,7 @@ import { useContext, useCallback, useState, useRef, useEffect } from 'react';
 import {createRoot} from "react-dom/client";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import * as mapService from '../../services/mapService';
+import * as tripService from '../../services/tripService';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -119,10 +120,10 @@ const BuildTrip = ({}) => {
     };
     console.log("DaysArray", daysArray);
 
-    const [days, setDays] = useState([]);
+    const [days, setDays] = useState(0);
 
     const createDays = () => {
-        setDays(daysArray);
+        setDays(daysArray.length);
     };
 
     console.log("days", days);
@@ -165,14 +166,50 @@ const BuildTrip = ({}) => {
         setTravelDestSearchText("");
     };
 
+    const handleAddTrip = async () => {
+        const newTrip = await tripService.createTrip({
+            tripName: tripName,
+            days: days,
+            activities: activities,
+            accomodation: accomodation
+        })
+
+        console.log(newTrip);
+
+        setTripName("");
+        setDays(0);
+        setActivities([]);
+        setAccomodation([]);
+        setFromDate(null);
+        setToDate(null);
+    }
+
+    //for trip name
+    const [tripName, setTripName] = useState("");
+    console.log(tripName);
+
+    
+
     return (
         <main>
 
 
             <h1>Build Trip</h1>
+            <section>
+                <h2>1. Give this trip a name</h2>
+                <form>
+                    <label htmlFor="tripNameText">Trip Name: </label>
+                    <input
+                    id="tripNameText"
+                    type="text"
+                    value={tripName}
+                    onChange={(e) => setTripName(e.target.value)}
+                    />
+                </form>
+            </section>
 
             <section>
-                <h2>1. How long will you be going for?</h2>
+                <h2>2. How long will you be going for?</h2>
                 <p>From: </p>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker 
@@ -201,7 +238,7 @@ const BuildTrip = ({}) => {
             <br></br>
 
             <section>
-                <h2>2. Where are you going?</h2>
+                <h2>3. Where are you going?</h2>
                 <form onSubmit={handleTravelDestSearchSubmit}>
                     <label htmlFor="travelDestSearchText">Search for travel destinations: </label>
                     <input
@@ -229,7 +266,7 @@ const BuildTrip = ({}) => {
 
             <br></br>
 
-            <h2>3. Select accomodation & activities</h2>
+            <h2>4. Select accomodation & activities</h2>
             <APIProvider apiKey={API_KEY}>
                 <div style={{ height: "100vh", width: "100vh" }}>
                     {cameraProps ? <Map 
@@ -339,7 +376,7 @@ const BuildTrip = ({}) => {
                 ))}
             </ol>
 
-            <button>Save Trip</button>
+            <button onClick={handleAddTrip}>Save Trip</button>
 
         </main>
     );
