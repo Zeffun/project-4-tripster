@@ -70,6 +70,10 @@ const tripSchema = new mongoose.Schema({
       type: Number,
       required: true
     },
+    travelDestination: {
+      type: String,
+      required: true
+    },
     activities: [activitySchema],
     accomodation: [accomodationSchema]
   },

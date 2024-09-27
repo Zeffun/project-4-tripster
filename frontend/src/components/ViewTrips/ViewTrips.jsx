@@ -21,11 +21,13 @@ const ViewTrip = () => {
     return (
         <>
             <h1>View Trips</h1> 
+            <h2>View your trips here</h2>
             <ul>
             {userTrips && userTrips.map((trip, index) => (
                 <li key={index}>
                     <p><strong>{trip.tripName}</strong></p>
                     <p>Number of Days: {trip.days}</p>
+                    <p>Travel Destination: {trip.travelDestination}</p>
                     <p>Activities</p>
                     <ul>
                     {trip.activities && trip.activities.map((place, index) => (

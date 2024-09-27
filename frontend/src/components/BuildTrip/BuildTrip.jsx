@@ -170,6 +170,7 @@ const BuildTrip = ({}) => {
         const newTrip = await tripService.createTrip({
             tripName: tripName,
             days: days,
+            travelDestination: travelDest.displayName.text,
             activities: activities,
             accomodation: accomodation
         })
@@ -182,6 +183,7 @@ const BuildTrip = ({}) => {
         setAccomodation([]);
         setFromDate(null);
         setToDate(null);
+        window.location.reload();
     }
 
     //for trip name
@@ -192,9 +194,10 @@ const BuildTrip = ({}) => {
 
     return (
         <main>
-
-
             <h1>Build Trip</h1>
+
+            <p>Create a new trip here</p>
+
             <section>
                 <h2>1. Give this trip a name</h2>
                 <form>
