@@ -1,7 +1,4 @@
 # project-4-tripster
-
-Here's a sample `README.md` for your MERN stack project "Tripster" that explains the functionality and key features of the application:
-
 ---
 
 # Tripster
