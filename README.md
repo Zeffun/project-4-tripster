@@ -1,6 +1,3 @@
-# project-4-tripster
----
-
 # Tripster
 
 Tripster is a trip-building web application that allows users to create custom itineraries for their travel plans. It integrates with Google Maps API and enables users to search for travel destinations, accommodations, and activities, while organizing their trips into detailed day-by-day itineraries. 
